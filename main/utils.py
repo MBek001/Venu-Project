@@ -1,7 +1,11 @@
+import os
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent
 
+QA_FILE = os.path.join(BASE_DIR, "qa.txt")
 # utils.py
-def get_answer_from_file(question: str, filepath="main/qa.txt") -> str:
+def get_answer_from_file(question: str, filepath=QA_FILE) -> str:
     with open(filepath, "r", encoding="utf-8") as f:
         lines = f.readlines()
         print("gieeee",filepath)
