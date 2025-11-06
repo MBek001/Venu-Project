@@ -1,10 +1,13 @@
 # utils.py
+import json
+import logging
 import os
 import re
 import requests
 from pathlib import Path
 from rapidfuzz import process, fuzz
 from typing import List, Dict, Optional, Tuple
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from .models import Product, Category
 from .config import (
     API_URL_CATEGORIES,
@@ -15,8 +18,9 @@ from .config import (
     QA_MATCH_THRESHOLD,
     UZBEK_SUFFIXES,
     STOP_WORDS,
-    MAX_PRODUCTS_TO_SHOW
+    MAX_PRODUCTS_TO_SHOW, MyDomain
 )
+
 
 BASE_DIR = Path(__file__).resolve().parent
 QA_FILE = os.path.join(BASE_DIR, "qa.txt")
@@ -517,3 +521,27 @@ def fetch_and_save_products() -> int:
     except Exception as e:
         print(f"❌ Mahsulot yuklashda xatolik: {e}")
         return 0
+
+
+
+
+def send_telegram_order_to_channel(token,channel_id,message,user_id,receiver_id):
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    keyboard = [
+        [InlineKeyboardButton("🗂 Suhbatni ko‘rish", url=f"{MyDomain}/chats?user_id={user_id}&receiver_id={receiver_id}")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    payload = {
+        'chat_id': channel_id,
+        'text': message,
+        'parse_mode': 'Markdown',
+        'reply_markup': json.dumps(reply_markup.to_dict())
+    }
+    try:
+        response = requests.post(url, data=payload)
+        if response.status_code == 200:
+            logging.info("✅ Buyurtma Telegram kanalga muvaffaqiyatli yuborildi")
+        else:
+            logging.error(f"❌ Buyurtma yuborilmadi: {response.status_code}, {response.text}")
+    except Exception as e:
+        logging.exception(f"❌ Telegramga yuborishda xatolik: {e}")

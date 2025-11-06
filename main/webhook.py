@@ -1,4 +1,3 @@
-
 import json
 import logging
 import os
@@ -9,7 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from .venu_ai import get_ai_response
+from .ai_service import ask_ai  # ✅ ai_service dan import qildik
 from .config import (
     ACCESS_TOKEN,
     VENU_PAGE_ID,
@@ -95,7 +94,7 @@ def send_instagram_message(recipient_id, message_text):
         "Content-Type": "application/json"
     }
 
-    # Xabar uzunligini tekshirish (qisqartildi)
+    # Xabar uzunligini tekshirish
     if len(message_text) > 800:
         print(f"⚠️ Message too long ({len(message_text)} chars), truncating...")
         message_text = message_text[:797] + "..."
@@ -181,9 +180,9 @@ def webhook(request):
                         # Save user message
                         save_conversation(sender_id, "User", message_text)
 
-                        # Get AI response
+                        # Get AI response (✅ user_id va receiver_id yuborildi)
                         print("🤖 Getting AI response...")
-                        ai_response = get_ai_response(message_text)
+                        ai_response = ask_ai(message_text, sender_id, recipient_id)
 
                         print(f"✅ AI Response ({len(ai_response)} chars):\n{ai_response[:200]}...")
 
