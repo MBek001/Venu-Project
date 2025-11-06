@@ -1,57 +1,194 @@
 # ai_service.py
 import json
-import openai
-from .utils import get_answer_from_file
-from .config import OPENAI_KEY, sytem_prompt
+from openai import OpenAI
+from typing import Dict, Any
+from .utils import get_answer_from_file, get_products_from_db
+from .config import SYSTEM_PROMPT, OPENAI_API_KEY
 
-openai.api_key = OPENAI_KEY
+# OpenAI client
+client = OpenAI(api_key=OPENAI_API_KEY)
+
+
+def format_product_for_ai(product_data: Dict[str, Any]) -> str:
+    """
+    Mahsulot ma'lumotlarini AI uchun formatda tayyorlaydi.
+    """
+    result = f"Mahsulot: {product_data['name']}\n"
+    result += f"Narxi: {product_data['price_formatted']}\n"
+
+    if product_data.get('stock', 0) > 0:
+        result += f"Omborda: {product_data['stock']} dona\n"
+    else:
+        result += "Omborda: Mavjud emas\n"
+
+    if product_data.get('details'):
+        details = product_data['details'][:200]
+        if len(product_data['details']) > 200:
+            details += "..."
+        result += f"Tavsif: {details}\n"
+
+    return result
 
 
 def ask_ai(message: str) -> str:
-    response = openai.ChatCompletion.create(
-        model="gpt-4-0613",
-        messages=[
-            {"role": "system", "content": sytem_prompt},
-            {"role": "user", "content": message}
-        ],
-        functions=[
-            {
-                "name": "get_answer_from_file",
-                "description": "Savolga txt fayldan javob topib beradi",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "question": {"type": "string"}
-                    },
-                    "required": ["question"]
+    """
+    Asosiy AI funksiyasi - mahsulotlarni chiroyli formatda taqdim etadi.
+    """
+
+    if not message or len(message.strip()) < 1:
+        return "Iltimos, savolingizni yozing 😊"
+
+    try:
+        # AI ga savol yuborish
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": message}
+            ],
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_products_from_db",
+                        "description": "Database dan mahsulot/kategoriya qidiradi",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "query": {"type": "string", "description": "Mahsulot/kategoriya nomi"}
+                            },
+                            "required": ["query"]
+                        }
+                    }
                 },
-            }
-        ],
-        function_call="auto",
-    )
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "get_answer_from_file",
+                        "description": "VENU xizmatlari haqida ma'lumot",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "question": {"type": "string", "description": "Savol"}
+                            },
+                            "required": ["question"]
+                        }
+                    }
+                }
+            ],
+            tool_choice="auto",
+            temperature=0.7,
+            max_tokens=1000
+        )
 
-    msg = response["choices"][0]["message"]
+        response_message = response.choices[0].message
+        tool_calls = response_message.tool_calls
 
-    # 1️⃣ Function call ishlasa
-    if msg.get("function_call"):
-        func_name = msg["function_call"]["name"]
-        if func_name == "get_answer_from_file":
-            args = json.loads(msg["function_call"]["arguments"])
-            file_answer = get_answer_from_file(args["question"])
+        # Funksiya chaqirilganmi?
+        if tool_calls:
+            tool_call = tool_calls[0]
+            function_name = tool_call.function.name
+            function_args = json.loads(tool_call.function.arguments)
 
-            # Agar txt faylda topilgan bo‘lsa → shu qaytadi
-            if file_answer and "javob topilmadi" not in file_answer.lower():
-                return file_answer
+            # MAHSULOT QIDIRISH
+            if function_name == "get_products_from_db":
+                query = function_args.get("query", message)
+                db_result = get_products_from_db(query)
 
-            # Agar topilmasa → fallback qilib AI dan javob olish
-            response2 = openai.ChatCompletion.create(
-                model="gpt-4-0613",
-                messages=[
-                    {"role": "system", "content": sytem_prompt},
-                    {"role": "user", "content": message}
-                ]
-            )
-            return response2["choices"][0]["message"].get("content", "Hech qanday javob topilmadi.")
+                # Mahsulotlar topildi - AI ga chiroyli taqdim qilishni topshiramiz
+                if db_result["found"] and db_result["products"]:
+                    products_info = ""
+                    for idx, product in enumerate(db_result["products"], 1):
+                        products_info += f"\n{idx}. {format_product_for_ai(product)}\n"
 
-    # 2️⃣ Agar umuman function_call bo‘lmasa
-    return msg.get("content", "Hech qanday javob topilmadi.")
+                    context = f"""
+Qidiruv: "{query}"
+Topildi: {len(db_result['products'])} ta
+Jami: {db_result['total_count']} ta
+{f"Kategoriya: {db_result['category_name']}" if db_result['category_name'] else ""}
+
+MAHSULOTLAR:
+{products_info}
+"""
+
+                    # AI ga chiroyli formatda taqdim qilishni so'raymiz
+                    final_response = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=[
+                            {"role": "system", "content": """Sen VENU yordamchisisisan. 
+
+Mahsulotlarni CHIROYLI formatda taqdim et:
+
+🎯 [Kirish]
+
+📦 1. [Mahsulot nomi]
+   💰 Narxi: [narx]
+   📊 Omborda: [miqdor]
+   📝 [Qisqa tavsif]
+
+📦 2. [Mahsulot nomi]
+   💰 Narxi: [narx]
+   📊 Omborda: [miqdor]
+   📝 [Qisqa tavsif]
+
+✨ [Yakun - agar ko'proq mahsulot bo'lsa]
+
+Qisqa, aniq, professional!"""},
+                            {"role": "user", "content": f"So'rov: {message}"},
+                            {"role": "assistant", "content": f"Topilgan ma'lumotlar:\n{context}"},
+                            {"role": "user", "content": "Bu ma'lumotlarni yuqoridagi formatda chiroyli taqdim et!"}
+                        ],
+                        temperature=0.8,
+                        max_tokens=1000
+                    )
+
+                    return final_response.choices[0].message.content
+
+                # Mahsulot topilmadi
+                else:
+                    fallback = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=[
+                            {"role": "system", "content": "Sen VENU yordamchisisisan."},
+                            {"role": "user", "content": message},
+                            {"role": "assistant", "content": f"'{query}' bo'yicha mahsulot topilmadi."},
+                            {"role": "user",
+                             "content": "Do'stona javob ber va kategoriyalar taklif qil: Smartfonlar, Noutbuklar, Televizorlar, Audiotexnika, Uy texnikasi. 3-4 jumla."}
+                        ],
+                        temperature=0.8,
+                        max_tokens=300
+                    )
+                    return fallback.choices[0].message.content
+
+            # VENU XIZMATLARI
+            elif function_name == "get_answer_from_file":
+                question = function_args.get("question", message)
+                qa_result = get_answer_from_file(question)
+
+                if qa_result["found"] and qa_result["answer"]:
+                    final_response = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=[
+                            {"role": "system", "content": "Sen VENU yordamchisisisan."},
+                            {"role": "user", "content": message},
+                            {"role": "assistant", "content": qa_result['answer']},
+                            {"role": "user",
+                             "content": "Bu javobni chiroyli formatda taqdim et. Emoji qo'sh va professional yoz."}
+                        ],
+                        temperature=0.7,
+                        max_tokens=500
+                    )
+                    return final_response.choices[0].message.content
+
+                else:
+                    return "Kechirasiz, bu savol bo'yicha ma'lumot yo'q. Boshqa savol bering yoki qo'llab-quvvatlash xizmatiga murojaat qiling 📞"
+
+        # AI o'zi javob berdi
+        if response_message.content:
+            return response_message.content
+
+        return "Savolingizni tushunmadim. Qaytadan yozib ko'ring 🤔"
+
+    except Exception as e:
+        print(f"❌ AI error: {e}")
+        return "Texnik muammo yuz berdi. Iltimos, keyinroq urinib ko'ring."
