@@ -1,7 +1,3 @@
-"""
-VENU AI Service
-Mahsulotlarni qidiradi va chiroyli formatda taqdim etadi
-"""
 
 import json
 import logging
@@ -44,7 +40,7 @@ def format_products_for_display(products_data: List[Dict], query: str = "") -> s
     display_products = products_data[:MAX_PRODUCTS_PER_MESSAGE]
     total_count = len(products_data)
 
-    result = "🎯 Sizga mos mahsulotlar:\n\n"
+    result = "🎯 Topildi:\n\n"  # Qisqartildi
 
     for idx, product in enumerate(display_products, 1):
         result += f"📦 {idx}. {product['name']}\n"
@@ -56,8 +52,8 @@ def format_products_for_display(products_data: List[Dict], query: str = "") -> s
             result += "   📊 Omborda: Tugagan\n"
 
         if product.get('details'):
-            details = product['details'][:150]
-            if len(product['details']) > 150:
+            details = product['details'][:80]  # Qisqartildi: 150 -> 80
+            if len(product['details']) > 80:
                 details += "..."
             result += f"   📝 {details}\n"
 
@@ -65,8 +61,7 @@ def format_products_for_display(products_data: List[Dict], query: str = "") -> s
 
     # Agar ko'proq mahsulot bo'lsa
     if total_count > MAX_PRODUCTS_PER_MESSAGE:
-        result += f"💬 Yana {total_count - MAX_PRODUCTS_PER_MESSAGE} ta mahsulot mavjud!\n"
-        result += "📞 Batafsil ma'lumot uchun operatorimizga murojaat qiling.\n\n"
+        result += f"💬 +{total_count - MAX_PRODUCTS_PER_MESSAGE} ta boshqa mahsulot bor.\n\n"
 
     result += f"{VENU_CONTACT}"
 
@@ -172,10 +167,8 @@ def get_ai_response(message: str) -> str:
         greetings = ["salom", "assalomu", "hello", "hi", "привет"]
         if any(word in message.lower() for word in greetings) and len(message) < 20:
             return (
-                "Assalomu alaykum! 👋\n\n"
-                "VENU marketplace'iga xush kelibsiz!\n\n"
-                "💻 Noutbuk, telefon, televizor va boshqa texnikalarni qidiryapsizmi?\n\n"
-                "📱 Qanday mahsulot kerak?"
+                "Assalomu alaykum! 👋 VENU ga xush kelibsiz!\n\n"
+                "Qanday mahsulot kerak? 📱💻"
             )
 
         # 2. Kontakt so'rash
@@ -203,13 +196,8 @@ def get_ai_response(message: str) -> str:
 
                 # Hech narsa topilmadi
                 return (
-                    "😔 Kechirasiz, bu mahsulot hozir mavjud emas.\n\n"
-                    "📋 Bizda quyidagilar bor:\n"
-                    "• Noutbuklar 💻\n"
-                    "• Smartfonlar 📱\n"
-                    "• Televizorlar 📺\n"
-                    "• Audiotexnika 🎧\n"
-                    "• Uy texnikasi 🏠\n\n"
+                    "😔 Bu mahsulot topilmadi.\n\n"
+                    "📋 Kategoriyalar: Noutbuk 💻, Smartfon 📱, Televizor 📺, Audio 🎧, Uy texnikasi 🏠\n\n"
                     f"{VENU_CONTACT}"
                 )
 
@@ -221,16 +209,13 @@ def get_ai_response(message: str) -> str:
 
         # 5. Umumiy javob
         return (
-            "🤔 Savolingizni tushunmadim.\n\n"
-            "Qanday mahsulot qidiryapsiz?\n"
-            "Yoki operatorimizga murojaat qiling:\n\n"
+            "🤔 Tushunmadim. Qanday mahsulot kerak?\n\n"
             f"{VENU_CONTACT}"
         )
 
     except Exception as e:
         logging.error(f"❌ get_ai_response error: {e}")
         return (
-            "😓 Texnik muammo yuz berdi.\n\n"
-            "Iltimos, operatorimizga murojaat qiling:\n\n"
+            "😓 Texnik xato. Operator bilan bog'laning:\n\n"
             f"{VENU_CONTACT}"
         )

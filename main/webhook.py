@@ -1,6 +1,3 @@
-"""
-VENU Instagram Webhook Handler
-"""
 
 import json
 import logging
@@ -98,10 +95,10 @@ def send_instagram_message(recipient_id, message_text):
         "Content-Type": "application/json"
     }
 
-    # Xabar uzunligini tekshirish
-    if len(message_text) > 1000:
+    # Xabar uzunligini tekshirish (qisqartildi)
+    if len(message_text) > 800:
         print(f"⚠️ Message too long ({len(message_text)} chars), truncating...")
-        message_text = message_text[:997] + "..."
+        message_text = message_text[:797] + "..."
 
     data = {
         "messaging_product": "instagram",
@@ -201,8 +198,8 @@ def webhook(request):
                         print("📎 Attachment received (not supported)")
 
                         reply = (
-                            "😊 Kechirasiz, men faqat matn xabarlariga javob bera olaman.\n\n"
-                            "Iltimos, savolingizni matn ko'rinishida yuboring yoki operatorimizga murojaat qiling."
+                            "😊 Kechirasiz, faqat matn xabarlariga javob beraman.\n\n"
+                            "Savolingizni matn ko'rinishida yuboring."
                         )
 
                         send_instagram_message(sender_id, reply)

@@ -1,4 +1,3 @@
-# ai_service.py
 import json
 from openai import OpenAI
 from typing import Dict, Any
@@ -78,7 +77,7 @@ def ask_ai(message: str) -> str:
             ],
             tool_choice="auto",
             temperature=0.7,
-            max_tokens=1000
+            max_tokens=300  # Qisqartildi: juda uzun javoblar uchun
         )
 
         response_message = response.choices[0].message
@@ -115,31 +114,27 @@ MAHSULOTLAR:
                     final_response = client.chat.completions.create(
                         model="gpt-4",
                         messages=[
-                            {"role": "system", "content": """Sen VENU yordamchisisisan. 
+                            {"role": "system", "content": """Sen VENU yordamchisisisan.
 
-Mahsulotlarni CHIROYLI formatda taqdim et:
+Mahsulotlarni QISQA va CHIROYLI formatda taqdim et:
 
-🎯 [Kirish]
+🎯 1-2 jumla kirish
 
-📦 1. [Mahsulot nomi]
-   💰 Narxi: [narx]
-   📊 Omborda: [miqdor]
-   📝 [Qisqa tavsif]
+📦 1. [Nomi]
+   💰 [Narx]
+   📊 [Ombor]
 
-📦 2. [Mahsulot nomi]
-   💰 Narxi: [narx]
-   📊 Omborda: [miqdor]
-   📝 [Qisqa tavsif]
+📦 2. [Nomi]
+   💰 [Narx]
+   📊 [Ombor]
 
-✨ [Yakun - agar ko'proq mahsulot bo'lsa]
-
-Qisqa, aniq, professional!"""},
+JUDA QISQA bo'lsin!"""},
                             {"role": "user", "content": f"So'rov: {message}"},
                             {"role": "assistant", "content": f"Topilgan ma'lumotlar:\n{context}"},
-                            {"role": "user", "content": "Bu ma'lumotlarni yuqoridagi formatda chiroyli taqdim et!"}
+                            {"role": "user", "content": "Bu ma'lumotlarni yuqoridagi formatda QISQA taqdim et!"}
                         ],
                         temperature=0.8,
-                        max_tokens=1000
+                        max_tokens=400  # Qisqartildi: 1000 -> 400
                     )
 
                     return final_response.choices[0].message.content
@@ -153,10 +148,10 @@ Qisqa, aniq, professional!"""},
                             {"role": "user", "content": message},
                             {"role": "assistant", "content": f"'{query}' bo'yicha mahsulot topilmadi."},
                             {"role": "user",
-                             "content": "Do'stona javob ber va kategoriyalar taklif qil: Smartfonlar, Noutbuklar, Televizorlar, Audiotexnika, Uy texnikasi. 3-4 jumla."}
+                             "content": "Do'stona javob ber va kategoriyalar taklif qil: Smartfonlar, Noutbuklar, Televizorlar, Audiotexnika, Uy texnikasi. Faqat 2-3 jumla!"}
                         ],
                         temperature=0.8,
-                        max_tokens=300
+                        max_tokens=200  # Qisqartildi: 300 -> 200
                     )
                     return fallback.choices[0].message.content
 
@@ -173,10 +168,10 @@ Qisqa, aniq, professional!"""},
                             {"role": "user", "content": message},
                             {"role": "assistant", "content": qa_result['answer']},
                             {"role": "user",
-                             "content": "Bu javobni chiroyli formatda taqdim et. Emoji qo'sh va professional yoz."}
+                             "content": "Bu javobni QISQA va chiroyli formatda taqdim et. Maksimal 3-4 jumla!"}
                         ],
                         temperature=0.7,
-                        max_tokens=500
+                        max_tokens=300  # Qisqartildi: 500 -> 300
                     )
                     return final_response.choices[0].message.content
 
