@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Barcha Suhbatlar - VENU</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0066ff 0%, #0052cc 50%, #003d99 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            padding: 25px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 30px;
+            padding: 35px 40px;
+            margin-bottom: 25px;
+            box-shadow:
+                0 8px 32px 0 rgba(0, 102, 255, 0.3),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+                0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(255, 255, 255, 0.8),
+                transparent);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-title h1 {
+            font-size: 2.2rem;
+            color: white;
+            font-weight: 700;
+            letter-spacing: -0.8px;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+            margin: 0;
+        }
+
+        .header-stats {
+            text-align: right;
+        }
+
+        .stats-number {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: white;
+            display: block;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .conversations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+        }
+
+        .conversation-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 24px;
+            padding: 26px;
+            box-shadow:
+                0 8px 32px 0 rgba(0, 102, 255, 0.25),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            display: block;
+            animation: fadeInUp 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .conversation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(255, 255, 255, 0.6),
+                transparent);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .conversation-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow:
+                0 16px 48px 0 rgba(0, 102, 255, 0.4),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .conversation-card:active {
+            transform: translateY(-4px) scale(1.01);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .user-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.3) 0%,
+                rgba(255, 255, 255, 0.2) 100%);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            font-weight: 700;
+            box-shadow:
+                0 4px 12px rgba(0, 102, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-info {
+            flex: 1;
+            margin-left: 16px;
+        }
+
+        .user-id {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: white;
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-count {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.85);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .last-message {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 14px 16px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.95);
+            line-height: 1.6;
+            max-height: 70px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .last-message::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(to bottom,
+                transparent,
+                rgba(255, 255, 255, 0.12));
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .timestamp {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .view-button {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow:
+                0 4px 12px rgba(0, 102, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            letter-spacing: 0.3px;
+        }
+
+        .conversation-card:hover .view-button {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+            box-shadow:
+                0 6px 16px rgba(0, 102, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 120px 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 30px;
+            box-shadow:
+                0 8px 32px 0 rgba(0, 102, 255, 0.3),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+            color: white;
+        }
+
+        .empty-icon {
+            font-size: 7rem;
+            margin-bottom: 30px;
+            opacity: 0.6;
+            animation: float 3s ease-in-out infinite;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .empty-state h2 {
+            font-size: 2.2rem;
+            margin-bottom: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 100px 30px;
+            background: linear-gradient(135deg,
+                rgba(255, 59, 48, 0.3) 0%,
+                rgba(255, 69, 58, 0.25) 100%);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 100, 97, 0.3);
+            color: white;
+            border-radius: 30px;
+            box-shadow: 0 8px 32px rgba(255, 59, 48, 0.2);
+        }
+
+        .error-icon {
+            font-size: 6rem;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 25px;
+                border-radius: 24px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .header-title h1 {
+                font-size: 1.8rem;
+            }
+
+            .header-stats {
+                text-align: left;
+            }
+
+            .conversations-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .conversation-card {
+                padding: 22px;
+            }
+
+            .empty-state {
+                padding: 80px 20px;
+            }
+
+            .empty-icon {
+                font-size: 5rem;
+            }
+
+            .empty-state h2 {
+                font-size: 1.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 20px;
+            }
+
+            .header-title h1 {
+                font-size: 1.6rem;
+            }
+
+            .conversation-card {
+                padding: 20px;
+            }
+
+            .user-avatar {
+                width: 48px;
+                height: 48px;
+                font-size: 1.3rem;
+            }
+
+            .user-id {
+                font-size: 1rem;
+            }
+        }
+
+        /* Sparkle animation */
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .header::after,
+        .conversation-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            animation: sparkle 5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>📱 Barcha Suhbatlar</h1>
+                </div>
+                {% if total_conversations %}
+                <div class="header-stats">
+                    <span class="stats-number">{{ total_conversations }}</span>
+                    <span class="stats-label">suhbat</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if error %}
+            <div class="error-state">
+                <div class="error-icon">⚠️</div>
+                <h2>Xatolik yuz berdi</h2>
+                <p>{{ error }}</p>
+            </div>
+        {% elif conversations %}
+            <div class="conversations-grid">
+                {% for conv in conversations %}
+                    <a href="/chats?user_id={{ conv.user_id }}&receiver_id={{ conv.receiver_id }}" class="conversation-card">
+                        <div class="card-header">
+                            <div class="user-avatar">
+                                {{ conv.user_id|slice:":1" }}
+                            </div>
+                            <div class="card-info">
+                                <div class="user-id">🆔 {{ conv.user_id }}</div>
+                                <div class="message-count">
+                                    💬 {{ conv.total_messages }} ta xabar
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if conv.last_message %}
+                        <div class="last-message">
+                            {{ conv.last_message }}
+                        </div>
+                        {% endif %}
+
+                        <div class="card-footer">
+                            <span class="timestamp">
+                                🕐 {{ conv.last_timestamp }}
+                            </span>
+                            <span class="view-button">
+                                Ko'rish →
+                            </span>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">💬</div>
+                <h2>Hali suhbatlar yo'q</h2>
+                <p>Hali hech qanday suhbat boshlanmagan.<br>
+                Birinchi mijoz xabar yozganida, suhbat bu yerda ko'rinadi.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            location.reload();
+        }, 30000);
+
+        // Smooth scroll behavior
+        document.addEventListener('DOMContentLoaded', () => {
+            document.documentElement.style.scrollBehavior = 'smooth';
+        });
+
+        // Add stagger animation to cards
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.conversation-card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.08}s`;
+            });
+        });
+    </script>
+</body>
+</html>
